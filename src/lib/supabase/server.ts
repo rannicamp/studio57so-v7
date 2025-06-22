@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createSupabaseServerClient as createClient } from '@/lib/supabase/server'; // Importa nosso conector
 import { cookies } from 'next/headers'
 
 export const createSupabaseServerClient = () => {
