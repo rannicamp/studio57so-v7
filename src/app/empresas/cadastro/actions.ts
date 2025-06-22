@@ -1,7 +1,7 @@
 // Local do arquivo: src/app/empresas/cadastro/actions.ts
 'use server';
 
-import { createClient } from '@/lib/supabase/client'; // Importa nosso conector
+import { createClient } from '@/lib/supabase/server'; // Importa nosso conector
 import { revalidatePath } from 'next/cache';
 
 export async function saveEmpresa(formData: FormData) {
