@@ -1,0 +1,26 @@
+Manual de Estilo e Design
+Este manual descreve os padrões de design, cores, fontes e componentes utilizados na sua aplicação, garantindo consistência e uma experiência de usuário de alta qualidade.
+
+1. Paleta de Cores
+Cores Principais: Azul Principal (#3b82f6), Azul Escuro (#2563eb).
+Cores de Feedback e Status: Sucesso (Verde), Perigo/Alerta (Vermelho), Cores de Tarefas (Verde, Roxo, Amarelo, etc.).
+Cores Neutras e de Texto: Fundo Geral (Cinza Super Claro), Fundo de Seção (Branco), Texto Principal (Cinza Escuro), Bordas (Cinza).
+2. Tipografia
+Fonte Principal: Inter é usada para todo o sistema.
+Hierarquia de Texto: Títulos de Página, Títulos de Seção, Corpo de Texto, Rótulos de Formulário, Texto de Botão.
+3. Layout e Componentes Reutilizáveis
+Cabeçalho Superior (Header): Componente reutilizável, fixo no topo (65px), projetado para conter logo, título e informações do usuário (nome e foto).
+Menu Lateral (Sidebar): Componente reutilizável, fixo à esquerda (260px), com navegação principal. Deve ser colapsável e usa ícones da biblioteca Font Awesome.
+Área de Conteúdo Principal: Espaço restante da tela, com seções de conteúdo de fundo branco e bordas arredondadas.
+4. Guia de Componentes
+Botões: Primário (Azul), Secundário (Cinza), De Exclusão (Vermelho).
+Formulários (Inputs, Selects): Aparência e comportamento padronizados para os estados normal, selecionado (focus) e apenas leitura.
+Tabelas: Estrutura com cabeçalho destacado e linhas separadas por bordas finas.
+Modal (Janela Pop-up): Janela de foco com fundo escurecido para ações como adicionar ou editar itens.
+Gráfico de Gantt:
+Estrutura do Cabeçalho: O cabeçalho da linha do tempo exibe os meses e os dias.
+Destaque de Fim de Semana: Para facilitar o planejamento e a visualização, os dias de fim de semana (sábados e domingos) devem ser claramente destacados no cabeçalho do gráfico com uma cor de fundo distinta, como um avermelhado claro.
+Barras de Tarefa: A posição e a largura da barra representam o início e o fim da tarefa. A barra de progresso interna indica a porcentagem de conclusão.
+Cálculo de Duração (Dias Úteis): O campo "Duração" deve operar com base em dias úteis. Ao calcular a data final a partir de uma data de início e uma duração, o sistema deve ignorar os fins de semana (sábados e domingos).
+Exemplo: Uma tarefa que começa em uma sexta-feira com duração de "2" dias deve ter sua data final calculada para a segunda-feira seguinte, não para o domingo.
+Marcador de "Hoje": Uma linha vertical vermelha atravessa o gráfico, indicando claramente a data atual.

@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Este arquivo estabelece os estilos base da aplicação,
+  seguindo as diretrizes do Manual de Estilo e Design.
+*/
+
+/* Importação da fonte principal 'Inter', conforme especificado no manual. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* --- Paleta de Cores (conforme Manual) --- */
+  /* Cores Principais */
+  --color-primary-hex: #3b82f6;      /* Azul Principal */
+  --color-primary-dark-hex: #2563eb; /* Azul Escuro */
+
+  /* Cores de Feedback */
+  --color-success-hex: #22c55e; /* Verde (Sucesso) */
+  --color-danger-hex: #ef4444;  /* Vermelho (Perigo/Exclusão) */
+  
+  /* Cores Neutras */
+  --color-fundo-geral-hex: #f8f9fa; /* Cinza Super Claro (Fundo Geral) */
+  --color-fundo-secao-hex: #ffffff; /* Branco (Fundo de Seção) */
+  --color-texto-principal-hex: #343a40; /* Cinza Escuro (Texto Principal) */
+  --color-bordas-hex: #d9d9d9;      /* Cinza (Bordas) */
+  --color-texto-muted-hex: #737373; /* Cinza (Texto Muted) */
+  
+  /* --- Mapeamento para sistema de design do Tailwind --- */
+  /* Estes valores em HSL são usados para gerar as classes como `bg-background`, `text-primary`, etc. */
+  --background: 220 14% 97%; /* Mapeado de --color-fundo-geral-hex */
+  --foreground: 215 14% 22%; /* Mapeado de --color-texto-principal-hex */
+  
+  --card: 0 0% 100%; /* Mapeado de --color-fundo-secao-hex */
+  --card-foreground: 215 14% 22%;
+
+  --primary: 217 91% 60%; /* Mapeado de --color-primary-hex */
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 84% 60%; /* Mapeado de --color-danger-hex */
+  --destructive-foreground: 210 40% 98%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --border: 217 19% 86%; /* Mapeado de --color-bordas-hex */
+  --input: 217 19% 86%;
+  --ring: 217 91% 60%;
+
+  --radius: 0.5rem;
+}
+ 
+@layer base {
+* {
+  border-color: hsl(var(--border)); 
+  box-sizing: border-box;
+}
+ 
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), sans-serif; /* MUDANÇA AQUI */
+    margin: 0;
+    line-height:
+  }
+ 
+  /* --- Estilos de Componentes Base (conforme Manual) --- */
+
+  /* Formulários (Inputs, Selects, etc.) */
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="search"],
+  select,
+  textarea {
+      @apply block w-full px-4 py-2 border rounded-md text-base 
+             bg-card text-foreground 
+             focus:outline-none focus:ring-2 focus:ring-ring;
+  }
+ 
+  input:disabled,
+  select:disabled,
+  button:disabled,
+  textarea:disabled {
+      @apply opacity-70 cursor-not-allowed;
+  }
+
+  input[readonly] {
+    @apply bg-muted/50 cursor-default;
+  }
+ 
+  /* Botões */
+  .btn {
+      @apply px-4 py-2 rounded-md font-semibold text-base cursor-pointer
+             transition-colors duration-300 ease-in-out disabled:opacity-70;
+  }
+  .btn-primary {
+      @apply bg-primary text-primary-foreground hover:bg-[var(--color-primary-dark-hex)];
+  }
+  .btn-secondary {
+      @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+      border: 1px solid hsl(var(--border));
+  }
+  .btn-danger {
+      @apply bg-destructive text-destructive-foreground hover:bg-red-600;
+  }
+ 
+  /* --- Classes de Layout Específicas --- */
+
+  /* Usado na página de formulário que já criamos */
+  .page-container {
+    @apply min-h-screen p-4;
+  }
+  .section-card {
+    @apply bg-card text-card-foreground shadow-md rounded-lg p-6;
+  }
+  .section-title {
+    @apply text-xl font-semibold text-foreground mb-4 border-b pb-2;
+  }
+}

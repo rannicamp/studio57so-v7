@@ -1,0 +1,300 @@
+-- Script SQL para Criação e Padronização das Tabelas do Banco de Dados Studio 57
+-- Colunas padronizadas para snake_case (minúsculas com underscore) para consistência no PostgreSQL.
+
+-- Tabela: cadastro_empresa
+-- Armazena informações sobre as empresas.
+CREATE TABLE public.cadastro_empresa (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, -- ID único e auto-incrementável
+    cnpj                    TEXT NOT NULL UNIQUE,
+    razao_social            TEXT NOT NULL,
+    nome_fantasia           TEXT,
+    inscricao_estadual      TEXT,
+    inscricao_municipal     TEXT,
+    address_street          TEXT, -- Logradouro
+    address_number          TEXT, -- Número Endereço
+    address_complement      TEXT, -- Complemento Endereço
+    cep                     VARCHAR(9),
+    city                    TEXT,
+    state                   VARCHAR(2),
+    neighborhood            TEXT,
+    telefone                VARCHAR(15),
+    email                   TEXT,
+    responsavel_legal       TEXT,
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Habilitar RLS e Políticas para cadastro_empresa
+ALTER TABLE public.cadastro_empresa ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert companies." ON public.cadastro_empresa FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all companies." ON public.cadastro_empresa FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update companies." ON public.cadastro_empresa FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete companies." ON public.cadastro_empresa FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: empreendimentos
+-- Armazena informações sobre os empreendimentos ou projetos.
+CREATE TABLE public.empreendimentos (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    empresa_proprietaria_id BIGINT NOT NULL,
+    nome                    TEXT NOT NULL UNIQUE,
+    address_street          TEXT,
+    address_number          TEXT,
+    address_complement      TEXT,
+    cep                     VARCHAR(9),
+    city                    TEXT,
+    state                   VARCHAR(2),
+    neighborhood            TEXT,
+    data_inicio             VARCHAR(10),
+    data_fim_prevista       VARCHAR(10),
+    status                  VARCHAR(50) DEFAULT 'Em Andamento',
+    valor_total             VARCHAR(20),
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    FOREIGN KEY (empresa_proprietaria_id) REFERENCES cadastro_empresa(id) ON DELETE CASCADE
+);
+
+-- Habilitar RLS e Políticas para empreendimentos
+ALTER TABLE public.empreendimentos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own undertakings." ON public.empreendimentos FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all undertakings." ON public.empreendimentos FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own undertakings." ON public.empreendimentos FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own undertakings." ON public.empreendimentos FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: funcionarios
+-- Armazena informações sobre os funcionários.
+CREATE TABLE public.funcionarios (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    empresa_id              BIGINT NOT NULL,
+    empreendimento_atual_id BIGINT, -- Opcional
+    full_name               TEXT NOT NULL,
+    cpf                     VARCHAR(14) NOT NULL UNIQUE,
+    rg                      VARCHAR(20),
+    birth_date              VARCHAR(10),
+    phone                   VARCHAR(15),
+    email                   TEXT,
+    address_street          TEXT,
+    address_number          TEXT,
+    address_complement      TEXT,
+    cep                     VARCHAR(9),
+    city                    TEXT,
+    state                   VARCHAR(2),
+    neighborhood            TEXT,
+    contract_role           TEXT NOT NULL,
+    admission_date          VARCHAR(10) NOT NULL,
+    base_salary             VARCHAR(20),
+    total_salary            VARCHAR(20),
+    daily_value             VARCHAR(20),
+    payment_method          TEXT,
+    pix_key                 TEXT,
+    bank_details            TEXT,
+    aso_doc                 TEXT, -- URL ASO Doc.
+    contract_doc            TEXT, -- URL Contrato Doc.
+    identity_doc            TEXT, -- URL Identidade Doc.
+    observations            TEXT,
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    FOREIGN KEY (empresa_id) REFERENCES cadastro_empresa(id) ON DELETE CASCADE,
+    FOREIGN KEY (empreendimento_atual_id) REFERENCES empreendimentos(id) ON DELETE SET NULL
+);
+
+-- Habilitar RLS e Políticas para funcionarios
+ALTER TABLE public.funcionarios ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own employees." ON public.funcionarios FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all employees." ON public.funcionarios FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own employees." ON public.funcionarios FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own employees." ON public.funcionarios FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: usuarios
+-- Gerencia os acessos de usuários ao sistema. (Isso é separado da autenticação do Supabase 'auth.users')
+CREATE TABLE public.usuarios (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    funcionario_id          BIGINT UNIQUE, -- Opcional, UNIQUE para 1:1
+    email                   TEXT NOT NULL UNIQUE, -- Email do usuário (pode ser o mesmo do auth.users)
+    password_hash           TEXT NOT NULL, -- Hash da senha (se gerenciar usuários fora do Supabase Auth)
+    is_active               BOOLEAN DEFAULT TRUE,
+    is_admin                BOOLEAN DEFAULT FALSE,
+    updated_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id) ON DELETE SET NULL
+);
+
+-- Habilitar RLS e Políticas para usuarios
+ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own app users." ON public.usuarios FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all app users." ON public.usuarios FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own app users." ON public.usuarios FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own app users." ON public.usuarios FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: diarios_obra
+-- Registra os diários de obra para cada empreendimento.
+CREATE TABLE public.diarios_obra (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    empreendimento_id       BIGINT NOT NULL,
+    data_relatorio          VARCHAR(10) NOT NULL, -- Ex: 'YYYY-MM-DD'
+    rdo_numero              VARCHAR(50),
+    responsavel_rdo         TEXT,
+    condicoes_climaticas    TEXT,
+    condicoes_trabalho      TEXT,
+    status_atividades       TEXT,
+    mao_de_obra             JSONB, -- Armazenado como JSON nativo
+    ocorrencias_do_dia      JSONB, -- Armazenado como JSON nativo
+    fotos_do_dia            JSONB, -- Armazenado como JSON nativo
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    FOREIGN KEY (empreendimento_id) REFERENCES empreendimentos(id) ON DELETE CASCADE,
+    UNIQUE (empreendimento_id, data_relatorio) -- Garante diário único por empreendimento por data
+);
+
+-- Habilitar RLS e Políticas para diarios_obra
+ALTER TABLE public.diarios_obra ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own daily reports." ON public.diarios_obra FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all daily reports." ON public.diarios_obra FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own daily reports." ON public.diarios_obra FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own daily reports." ON public.diarios_obra FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: activities
+-- Armazena as atividades ou tarefas.
+CREATE TABLE public.activities (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    empresa_id              BIGINT, -- Opcional
+    empreendimento_id       BIGINT, -- Opcional
+    funcionario_id          BIGINT, -- Opcional
+    diario_obra_id          BIGINT, -- Opcional
+    criado_por_usuario_id   BIGINT NOT NULL, -- Quem criou a atividade (referencia usuarios.id)
+    etapa                   TEXT,
+    tipo_atividade          VARCHAR(50) NOT NULL,
+    nome                    TEXT NOT NULL,
+    descricao               TEXT,
+    data_inicio_prevista    VARCHAR(10),
+    duracao_dias            INTEGER,
+    data_fim_prevista       VARCHAR(10),
+    data_inicio_real        VARCHAR(10),
+    data_fim_real           VARCHAR(10),
+    status                  VARCHAR(50) DEFAULT 'Não iniciado',
+    responsavel_texto       TEXT,
+    dependencies            TEXT, -- Pode ser JSON ou lista de IDs (texto)
+    custom_class            TEXT,
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    FOREIGN KEY (empresa_id) REFERENCES cadastro_empresa(id) ON DELETE SET NULL,
+    FOREIGN KEY (empreendimento_id) REFERENCES empreendimentos(id) ON DELETE SET NULL,
+    FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id) ON DELETE SET NULL,
+    FOREIGN KEY (diario_obra_id) REFERENCES diarios_obra(id) ON DELETE SET NULL,
+    FOREIGN KEY (criado_por_usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+-- Habilitar RLS e Políticas para activities
+ALTER TABLE public.activities ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own activities." ON public.activities FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all activities." ON public.activities FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own activities." ON public.activities FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own activities." ON public.activities FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: materiais
+-- Armazena informações sobre materiais.
+CREATE TABLE public.materiais (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    empresa_fornecedor_id   BIGINT, -- Opcional
+    nome                    TEXT NOT NULL,
+    descricao               TEXT,
+    unidade_medida          TEXT,
+    quantidade_estoque      VARCHAR(20),
+    preco_unitario          VARCHAR(20),
+    fornecedor_texto        TEXT,
+    address_street          TEXT,
+    address_number          TEXT,
+    address_complement      TEXT,
+    cep                     VARCHAR(9),
+    city                    TEXT,
+    state                   VARCHAR(2),
+    neighborhood            TEXT,
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    FOREIGN KEY (empresa_fornecedor_id) REFERENCES cadastro_empresa(id) ON DELETE SET NULL
+);
+
+-- Habilitar RLS e Políticas para materiais
+ALTER TABLE public.materiais ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own materials." ON public.materiais FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all materials." ON public.materiais FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own materials." ON public.materiais FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own materials." ON public.materiais FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: ocorrencias
+-- Registra ocorrências ou eventos.
+CREATE TABLE public.ocorrencias (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    empreendimento_id       BIGINT NOT NULL,
+    atividade_id            BIGINT, -- Opcional
+    funcionario_id          BIGINT, -- Opcional
+    tipo                    VARCHAR(50) NOT NULL,
+    descricao               TEXT NOT NULL,
+    data_ocorrencia         VARCHAR(10) NOT NULL,
+    hora_ocorrencia         VARCHAR(5),
+    severidade              VARCHAR(20) DEFAULT 'Média',
+    resolvida               BOOLEAN DEFAULT FALSE,
+    data_resolucao          VARCHAR(10),
+    observacoes             TEXT,
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    FOREIGN KEY (empreendimento_id) REFERENCES empreendimentos(id) ON DELETE CASCADE,
+    FOREIGN KEY (atividade_id) REFERENCES activities(id) ON DELETE SET NULL,
+    FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id) ON DELETE SET NULL
+);
+
+-- Habilitar RLS e Políticas para ocorrencias
+ALTER TABLE public.ocorrencias ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own occurrences." ON public.ocorrencias FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all occurrences." ON public.ocorrencias FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own occurrences." ON public.ocorrencias FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own occurrences." ON public.ocorrencias FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: contatos
+-- Armazena informações de contato.
+CREATE TABLE public.contatos (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    empresa_id              BIGINT, -- Opcional
+    nome                    TEXT NOT NULL,
+    tipo_contato            VARCHAR(50),
+    empresa_texto           TEXT,
+    cargo                   TEXT,
+    email                   TEXT,
+    telefone                TEXT,
+    address_street          TEXT,
+    address_number          TEXT,
+    address_complement      TEXT,
+    cep                     VARCHAR(9),
+    city                    TEXT,
+    state                   VARCHAR(2),
+    neighborhood            TEXT,
+    created_at              TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    FOREIGN KEY (empresa_id) REFERENCES cadastro_empresa(id) ON DELETE SET NULL
+);
+
+-- Habilitar RLS e Políticas para contatos
+ALTER TABLE public.contatos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own contacts." ON public.contatos FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all contacts." ON public.contatos FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own contacts." ON public.contatos FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own contacts." ON public.contatos FOR DELETE TO authenticated USING (TRUE);
+
+
+-- Tabela: pontos
+-- Registra os pontos de entrada/saída de funcionários.
+CREATE TABLE public.pontos (
+    id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    funcionario_id          BIGINT NOT NULL,
+    data_hora               TIMESTAMP NOT NULL,
+    tipo_registro           TEXT,
+    observacao              TEXT,
+    created_at              TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id) ON DELETE CASCADE
+);
+
+-- Habilitar RLS e Políticas para pontos
+ALTER TABLE public.pontos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can insert own time entries." ON public.pontos FOR INSERT TO authenticated WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Users can view all time entries." ON public.pontos FOR SELECT TO authenticated USING (TRUE);
+CREATE POLICY "Users can update own time entries." ON public.pontos FOR UPDATE TO authenticated USING (TRUE);
+CREATE POLICY "Users can delete own time entries." ON public.pontos FOR DELETE TO authenticated USING (TRUE);
