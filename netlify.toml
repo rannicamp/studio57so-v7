@@ -1,0 +1,13 @@
+# Arquivo de configuração para a Netlify
+
+[build]
+  # Comando que a Netlify vai usar para construir o site.
+  command = "next build"
+
+  # Pasta que a Netlify vai publicar após a construção.
+  publish = ".next"
+
+[[plugins]]
+  # Plugin essencial para garantir que todas as funcionalidades do Next.js
+  # (como Server Actions e otimização de imagens) funcionem na Netlify.
+  package = "@netlify/plugin-nextjs"
